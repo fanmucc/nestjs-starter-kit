@@ -32,6 +32,14 @@
 $ pnpm install
 ```
 
+## 初始化数据库
+```bash
+npx prisma db pull
+npx prisma generate
+```
+
+完成后，prisma/schema.prisma 文件中会同步出表数据
+
 ## Running the app
 
 ```bash
