@@ -70,15 +70,58 @@ export class TranslationsService {
   // 批量创建或更新翻译
   async upsertTranslations(
     translatableType: string,
-    translatableId: number,
+    translatableId: number | bigint,
     translations: { column: string; locale: string; value: string }[],
   ) {
-    return this.translationModel.upsertTranslations(translatableType, translatableId, translations);
+    const operations = translations.map(({ column, locale, value }) =>
+      this.prisma.translations.upsert({
+        where: {
+          translatable_type_translatable_id_locale_column: {
+            translatable_type: translatableType,
+            translatable_id: translatableId,
+            locale,
+            column,
+          },
+        },
+        update: {
+          value,
+        },
+        create: {
+          translatable_type: translatableType,
+          translatable_id: translatableId,
+          column,
+          locale,
+          value,
+        },
+      })
+    );
+    return Promise.all(operations);
   }
 
   // 删除实体的所有翻译
-  async deleteTranslations(translatableType: string, translatableId: number) {
-    return this.translationModel.deleteTranslations(translatableType, translatableId);
+  deleteTranslations(translatableType: string, translatableId: number) {
+    this.prisma.translations.deleteMany({
+      where: {
+        translatable_type: translatableType,
+        translatable_id: translatableId,
+      },
+    }).catch(err => {
+      console.log(err, '==删除翻译失败==');
+      // this.logger.warn(`删除翻译失败: ${err.message}`);
+    })
+  }
+
+  // 批量删除翻译
+  deleteTranslationsMany(translatableType: string, translatableIds: number[]) {
+    this.prisma.translations.deleteMany({
+      where: {
+        translatable_type: translatableType,
+        translatable_id: { in: translatableIds }
+      },
+    }).catch(err => {
+      console.log(err, '==批量删除翻译失败==');
+      // this.logger.warn(`批量删除翻译失败: ${err.message}`);
+    })
   }
 
   // 删除特定字段的翻译
@@ -105,4 +148,6 @@ export class TranslationsService {
       await this.upsertTranslations(translatableType, translatableId, translations);
     }
   }
+
+
 } 

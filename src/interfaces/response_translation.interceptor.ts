@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
 import { TranslationsService } from '../translations/translations.service';
+import { LoggerService } from '../common/services/logger.service';
 
 export const RESPONSE_TRANSLATION_KEY = 'response_translation';
 
@@ -27,6 +28,8 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
     private reflector: Reflector,
     private translationService: TranslationsService
   ) { }
+  // 日志
+  private readonly logger = new LoggerService();
   // 收集需要翻译的值
   private collectTranslationValues(data: any, fields: string[]): Array<{
     translatable_id: number;
@@ -97,7 +100,6 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
     };
 
     collect(data);
-    console.log('Collected translation values:', values.length);
     return values;
   }
 
@@ -232,7 +234,6 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map(data => {
-        console.log('====2====')
         // 如果没有翻译配置或数据，直接返回
         if (!translationConfig || !data) {
           return data;
@@ -244,12 +245,10 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
           return this.processTranslation(data, translationConfig)
             .then(result => {
               // console.log('Translation completed, returning data');
-              console.log(result, '===result===');
-
               return result;
             })
             .catch(error => {
-              console.error('Error processing translation:', error);
+              this.logger.error('Error processing translation:', error);
               return data; // 出错时返回原始数据
             });
         }
@@ -257,12 +256,10 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
         // 处理普通数据
         return this.processSimpleTranslation(data, translationConfig)
           .then(result => {
-            console.log(result, '===result===');
-
             return result;
           })
           .catch(error => {
-            console.error('Error processing simple translation:', error);
+            this.logger.error('Error processing simple translation:', error);
             return data; // 出错时返回原始数据
           });
       }),
@@ -291,14 +288,12 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
 
     // 批量获取翻译
     const translations = await this.translationService.getTranslations(uniqueTranslationsWhere);
-    console.log(`Got ${translations.length} translations`);
 
     // 将翻译结果转换为Map以便快速查找
     const translationsMap = this.buildTranslationsMap(translations);
 
     // 应用翻译
     const translatedData = this.applyTranslations(items, translationsMap, translationConfig.fields);
-    console.log(data, '===上个dto 返回的数据===');
 
     return {
       ...data,
@@ -309,7 +304,6 @@ export class ResponseTranslationInterceptor implements NestInterceptor {
   // 处理普通响应结构
   private async processSimpleTranslation(data: any, translationConfig: TranslationConfig): Promise<any> {
     const valuesToTranslate = this.collectTranslationValues(data, translationConfig.fields);
-    console.log('Values to translate:', valuesToTranslate.length);
 
     let translationsWhere = [];
     for (const value of valuesToTranslate) {

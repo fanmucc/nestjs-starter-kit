@@ -39,14 +39,17 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
       const instance = plainToInstance(dto, data, {
         excludeExtraneousValues: true
       });
-      const transformed = instanceToPlain(instance);
 
+      const transformed = instanceToPlain(instance);
       // 递归处理所有嵌套对象
-      Object.keys(transformed).forEach(key => {
-        if (transformed[key] && typeof transformed[key] === 'object') {
-          transformed[key] = this.transformNestedObject(transformed[key], dto);
-        }
-      });
+      // Object.keys(transformed).forEach(key => {
+      //   if (transformed[key] && typeof transformed[key] === 'object') {
+      //     if (key === 'parent' && data[key]) {
+      //       // 对于parent字段，使用同样的DTO递归处理
+      //       transformed[key] = this.transformNestedObject(data[key], dto);
+      //     }
+      //   }
+      // });
 
       return transformed;
     }
@@ -65,8 +68,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
       RESPONSE_DTO_KEY,
       handler,
     );
-
-    console.log('====1====')
 
     return next.handle().pipe(
       map(data => {
@@ -99,7 +100,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
             transformedData = this.transformNestedObject(data, responseDto);
           }
         }
-
         // 构建标准响应格式
         const result: ResponseInterface<T> = {
           code: ResponseCodeEnum.SUCCESS,
