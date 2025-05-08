@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Roles } from './decorators/roles.decorator';
+import { Roles } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -15,7 +15,6 @@ export class RolesGuard implements CanActivate {
       context.getHandler(), // 获取当前请求的处理方法
       context.getClass(), // 获取当前请求的控制器类
     ]);
-    console.log(requiredRoles, '===requiredRoles===');
     return true
     // 如果没有设置角色要求，允许访问
     if (!requiredRoles) {

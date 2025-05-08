@@ -9,8 +9,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { BusinessException } from '../exceptions/business.exception';
-import { SystemException } from '../exceptions/system.exception';
+import { BusinessException } from './exceptions/business.exception';
+import { SystemException } from './exceptions/system.exception';
 import { ErrorCode } from '../enums/error-code.enum';
 import { LoggerService } from '../common/services/logger.service';
 
@@ -29,10 +29,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let data: any = null;
     // 处理已知异常
     if (exception instanceof BusinessException) {
+      console.log(exception, '===exception===', exception.getStatus());
       status = exception.getStatus();  // 使用 getStatus() 方法
       code = exception.code;
       message = exception.message;
-      data = exception.data;
+      data = exception.data ? exception.data : {
+        message: exception.message,
+        code: exception.code,
+      };
     }
     // 处理系统异常
     else if (exception instanceof SystemException) {

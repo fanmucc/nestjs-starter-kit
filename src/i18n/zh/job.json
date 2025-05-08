@@ -1,0 +1,43 @@
+{
+  "job": {
+    "status": {
+      "draft": "草稿",
+      "reviewing": "审核中",
+      "published": "已发布",
+      "closed": "已关闭"
+    },
+    "type": {
+      "full_time": "全职",
+      "internship": "实习",
+      "part_time": "兼职",
+      "contract": "合同工",
+      "casual": "临时工"
+    },
+    "education": {
+      "no_limit": "不限",
+      "junior_high_school": "初中",
+      "high_school": "高中",
+      "diploma_student": "大专",
+      "bachelors_degree": "本科",
+      "masters_degree": "硕士",
+      "doctoral_degree": "博士"
+    },
+    "work_year": {
+      "no_limit": "不限",
+      "within_1": "1年以内",
+      "1_3": "1-3年",
+      "3_5": "3-5年",
+      "5_10": "5-10年",
+      "over_10": "10年以上"
+    },
+    "salary": {
+      "training": "实习",
+      "discuss_personally": "面议",
+      "50000_60000": "5-6万",
+      "60000_80000": "6-8万",
+      "80000_100000": "8-10万",
+      "100000_150000": "10-15万",
+      "above_150000": "15万以上"
+    }
+  }
+}

@@ -1,3 +1,7 @@
+import { ConfigService } from '@nestjs/config';
+import { BusinessException } from '../exceptions-filters/exceptions/business.exception';
+import { HttpStatus } from '@nestjs/common';
+
 // 基础过滤器
 export interface BaseFilterOptions {
   // status?: number;
@@ -10,13 +14,32 @@ export class BaseFilter {
   protected orderBy: Record<string, 'asc' | 'desc'> = {};
   protected skip?: number;
   protected take?: number;
+  private static configService: ConfigService;
 
   constructor(filters: BaseFilterOptions) {
     this.where = this.buildBaseWhereClause(filters);
   }
 
+  // 设置 ConfigService 实例
+  static setConfigService(configService: ConfigService) {
+    BaseFilter.configService = configService;
+  }
+
+  // 获取默认分页大小
+  private getDefaultPerPage(): number {
+    if (BaseFilter.configService) {
+      const perPage = BaseFilter.configService.get<string>('TABLE_DEFAULT_PER_PAGE');
+      // 如果配置存在，转换为数字，否则使用默认值
+      return perPage ? parseInt(perPage, 10) : 10;
+    }
+    return 10; // 默认值
+  }
+
   protected buildBaseWhereClause(filters: BaseFilterOptions): Record<string, any> {
     const where: Record<string, any> = {};
+
+    // 默认 排除已删除数据
+    where.deleted_at = null;
 
     // 处理状态过滤
     // if (filters.status !== undefined) {
@@ -49,7 +72,11 @@ export class BaseFilter {
     return this;
   }
 
-  paginate(page: number = 1, perPage: number = 10): this {
+  paginate(page: number = 1, perPage: number = this.getDefaultPerPage()): this {
+    if (typeof page !== 'number' || typeof perPage !== 'number') {
+      // 这里为已知错误
+      throw new BusinessException('分页参数必须为数字', 400,);
+    }
     this.skip = (page - 1) * perPage;
     this.take = perPage;
     return this;

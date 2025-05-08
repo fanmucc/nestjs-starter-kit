@@ -1,0 +1,2 @@
+// 表格筛选默认值
+export const TABLE_DEFAULT_PER_PAGE = 'TABLE_DEFAULT_PER_PAGE';

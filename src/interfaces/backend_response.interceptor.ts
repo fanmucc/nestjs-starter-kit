@@ -26,6 +26,33 @@ export function ResponseDto(dto: ClassConstructor<any>) {
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInterface<T>> {
   constructor(private reflector: Reflector) { }
+  // 递归处理嵌套对象
+  private transformNestedObject(data: any, dto: ClassConstructor<any>): any {
+    if (!data) return data;
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.transformNestedObject(item, dto));
+    }
+
+    if (typeof data === 'object') {
+      // 转换当前对象
+      const instance = plainToInstance(dto, data, {
+        excludeExtraneousValues: true
+      });
+      const transformed = instanceToPlain(instance);
+
+      // 递归处理所有嵌套对象
+      Object.keys(transformed).forEach(key => {
+        if (transformed[key] && typeof transformed[key] === 'object') {
+          transformed[key] = this.transformNestedObject(transformed[key], dto);
+        }
+      });
+
+      return transformed;
+    }
+
+    return data;
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<ResponseInterface<T>> {
     const ctx = context.switchToHttp();
@@ -39,6 +66,8 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
       handler,
     );
 
+    console.log('====1====')
+
     return next.handle().pipe(
       map(data => {
         // 如果返回的数据已经是 ResponseInterface 格式，直接返回
@@ -50,21 +79,24 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
         const statusCode = response.statusCode || HttpStatus.OK;
 
         let transformedData = data;
+        let meta = {};
 
-        // 使用class-transformer处理返回数据
-        if (responseDto && data) {
-          if (Array.isArray(data)) {
-            // 处理数组数据
-            const instances = data.map(item => plainToInstance(responseDto, item, {
-              excludeExtraneousValues: true
-            }));
-            transformedData = instances.map(instance => instanceToPlain(instance));
+        // 处理包含 data 和 meta 的返回结构
+        if (data && data.hasOwnProperty('data') && data.hasOwnProperty('meta')) {
+          const { data: items, meta: originalMeta } = data;
+
+          // 使用递归转换处理返回数据
+          if (responseDto && items) {
+            transformedData = this.transformNestedObject(items, responseDto);
           } else {
-            // 处理单个对象
-            const instance = plainToInstance(responseDto, data, {
-              excludeExtraneousValues: true
-            });
-            transformedData = instanceToPlain(instance);
+            transformedData = items;
+          }
+
+          meta = originalMeta;
+        } else {
+          // 处理普通数据
+          if (responseDto && data) {
+            transformedData = this.transformNestedObject(data, responseDto);
           }
         }
 
@@ -77,19 +109,9 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
             timestamp: new Date().toISOString(),
             path: request.url,
             statusCode,
+            ...meta,
           },
         };
-
-        // 如果是分页数据，添加分页信息
-        if (data && data.meta && data.meta.pagination) {
-          const { pagination, ...restMeta } = data.meta;
-          result.data = transformedData;
-          result.meta = {
-            ...result.meta,
-            ...restMeta,
-            pagination,
-          };
-        }
 
         return result;
       }),

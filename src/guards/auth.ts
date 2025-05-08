@@ -1,7 +1,7 @@
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContext, Injectable, HttpException, HttpStatus } from '@nestjs/common';
 
-import { BusinessException } from '../exceptions/business.exception';
+import { BusinessException } from '../exceptions-filters/exceptions/business.exception';
 import { ErrorCode } from '../enums/error-code.enum';
 
 export class AuthJWTGuard extends AuthGuard('jwt') {

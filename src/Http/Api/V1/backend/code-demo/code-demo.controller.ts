@@ -3,20 +3,23 @@ import { CodeDemoService } from './code-demo.service';
 import { CreateCodeDemoDto } from './dto/create-code-demo.dto';
 import { UpdateCodeDemoDto } from './dto/update-code-demo.dto';
 import { HttpStatus } from '@nestjs/common';
-import { BusinessException } from '../../../../../exceptions/business.exception';
+import { BusinessException } from '../../../../../exceptions-filters/exceptions/business.exception';
 import { ErrorCode } from '../../../../../Enums/error-code.enum';
 
 // 引入守卫
 import { JobGuard } from '../../../../../guards/job.guard';
 // 引入装饰器
-import { Roles } from '../../../../../roles/decorators/roles.decorator';
-import { RolesGuard } from '../../../../../roles/roles.guard';
-import { CompanySelf } from '../../../../../roles/decorators/company-self.decorator';
+import { Roles } from '../../../../../decorators/roles.decorator';
+import { RolesGuard } from '../../../../../guards/roles.guard';
+import { CompanySelf } from '../../../../../decorators/company-self.decorator';
 // 引入dto转换器
 import { ResponseDto } from '../../../../../interfaces/backend_response.interceptor';
+// 引入jwt鉴权
+import { AuthJWTGuard } from '../../../../../guards/auth';
 
-@Controller('code-demo')
-@UseGuards(RolesGuard)
+@Controller('')
+// @UseGuards(RolesGuard)
+// @UseGuards(AuthJWTGuard)
 // @Roles(['company']) // 类级别的角色要求
 export class CodeDemoController {
   constructor(private readonly codeDemoService: CodeDemoService) { }
@@ -42,8 +45,8 @@ export class CodeDemoController {
   }
 
   @Get()
-  @Roles(['company']) // 方法级别的角色要求
-  @UseGuards(JobGuard)
+  // @Roles(['company']) // 方法级别的角色要求
+  // @UseGuards(JobGuard)
   findAll() {
     // return this.codeDemoService.findAll();
     // 2. 触发已知业务错误
