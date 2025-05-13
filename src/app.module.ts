@@ -34,7 +34,6 @@ import { BaseFilter } from './modelFilters/BaseFilter';
       load: [() => dotenv.config({ path: '.env' })],
     }),
     // 引入数据库模块，全局引入，其他模块直接使用
-    // PrismaModule,
     ServicesModule,
     BackendModule,
     // 处理路由模块
@@ -74,7 +73,6 @@ import { BaseFilter } from './modelFilters/BaseFilter';
         new HeaderResolver(['accept-language']),
       ],
     }),
-    // TranslationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

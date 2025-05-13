@@ -1,7 +1,18 @@
 #!/bin/bash
-# 1️⃣ 加载 .env 文件
+# 1️⃣ Load .env file
 if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
+fi
+
+# 2️⃣ 加载 env.prod 文件，并将生产环境的 DATABASE_URL 赋值给 PROD_DATABASE_URL
+if [ -f env.prod ]; then
+  # 临时保存生产环境的 DATABASE_URL
+  PROD_DB_URL=$(grep -v '^#' env.prod | grep DATABASE_URL | cut -d '=' -f2)
+  if [ -n "$PROD_DB_URL" ]; then
+    export PROD_DATABASE_URL=$PROD_DB_URL
+  fi
+  # 加载其他环境变量
+  export $(grep -v '^#' env.prod | grep -v DATABASE_URL | xargs)
 fi
 
 echo "🔍 加载环境变量完成"

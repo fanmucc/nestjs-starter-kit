@@ -4,51 +4,73 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
-基于 NestJS 框架的项目，采用类似 Laravel 的目录结构，使用 TypeScript 开发。
+基于 NestJS 框架的项目，采用类似 Laravel 的目录结构，使用 TypeScript 开发。本项目提供了一个完整的后端服务架构，包含用户认证、权限管理、国际化等常用功能。
+
+## 项目初始化
+
+1. 查看 .env 文件 进行 sql 地址配置，不同数据库配置请更新 `prisma/schema.prisma`中数据库参数
+2. `pnpm install`
+3. 运行 `npx prisma db pull`
+4. 运行 `npx prisma generate` 初始化 prisma 客户端
+5. `pnpm run start:dev` 运行配置
+
+** 注：引入了 sql，请优先讲 sql 环境进行配置，否则控制台报错 **
+
+## 第三方服务 services
+
+第三方服务统一放到这里进行引入，暂时有 `prisma`、`redis`、`email`.
+其中 `redis 和 email`为 亚马逊提供，可能需要在配置或者代码上进行修改适配
+
+## prisma 提交说明
+
+1. `prisma` 会在 sql 中生成一个日志表，会对生产时间有较为严格的对比，这就导致在多人开发过程中，对表的生产和修改时间无法保证统一的顺序，导致的结果就是再更新表的时候，会提示表错误，然后让其选择是否进行数据库格式化 --(eggs 疼)
+2. 这里我采用的方法是，测试环境想提交就提交。`npx prisma db push`，其他人在开发环境的时候，进行`pull`就可以了。
+3. 生产环境时，则通过命令讲生产环境表与测试环境表进行`diff`对比，然后生产修改文件。手动保留需要上线的表修改并生产日志文件进行同步。
+4. 生产环境执行日志更新，来打到表更新的目的
+5. 设计到的两个文件`prisma-diff.sh` 这个会对比生产表与测试表的不同并生产修改文件。 `prisma-up`这里会讲生产的修改文件打包成修改迁移日志。发布线上后，线上执行 `npx prisma migrate deploy`来同步日志。
 
 ## 技术栈
 
-- NestJS
-- TypeScript
-- Prisma (ORM)
-- MySQL
-- JWT Authentication
-- i18n (国际化)
+- **核心框架**: NestJS
+- **开发语言**: TypeScript
+- **数据库 ORM**: Prisma
+- **数据库**: MySQL
+- **认证**: JWT Authentication
+- **国际化**: i18n
+- **包管理**: pnpm
+- **代码规范**: ESLint + Prettier
+- **测试框架**: Jest
 
-## 安装
+## 快速开始
+
+### 环境要求
+
+- Node.js >= 16
+- pnpm >= 8
+- MySQL >= 8.0
+- Redis (可选)
+
+### 安装
 
 ```bash
+# 克隆项目
+$ git clone [项目地址]
+
 # 安装依赖
 $ pnpm install
+
+# 配置环境变量
+$ cp .env.example .env
+$ cp env.prod.example env.prod
 
 # 初始化数据库
 $ npx prisma db pull
 $ npx prisma generate
 ```
 
-## 运行项目
+### 运行项目
 
 ```bash
 # 开发环境
@@ -56,11 +78,14 @@ $ pnpm run start:dev
 
 # 生产环境
 $ pnpm run start:prod
+
+# 调试模式
+$ pnpm run start:debug
 ```
 
 ## 项目结构
 
-```bash
+```
 src/
 ├── Http/                    # HTTP 相关
 │   └── Api/                # API 路由
@@ -77,7 +102,7 @@ src/
 ├── exceptions-filters/  # 异常过滤器
 ├── guards/             # 认证守卫
 ├── interfaces/         # 接口定义
-├── lang/              # 语言文件
+├── i18n/              # 国际化文件
 │   ├── en/           # 英文
 │   └── zh/           # 中文
 ├── models/           # 数据模型
@@ -85,111 +110,67 @@ src/
 └── utils/           # 工具函数
 ```
 
-## 目录说明
+## 核心功能
 
-- **Http/**: HTTP 请求处理
+### 1. 认证与授权
 
-  - **Api/**: API 路由定义
-  - **V1/**: API 版本控制
-  - **app/**: C端接口，处理客户端请求
-  - **auth/**: 认证相关，处理用户认证和授权
-  - **backend/**: 后端业务逻辑，处理管理后台请求
+- JWT 认证
+- 角色权限控制
+- 多角色支持
+- 自定义守卫
 
-- **common/**: 公共模块
+### 2. 数据库操作
 
-  - **services/**: 公共服务（如日志服务、响应格式化等）
+- Prisma ORM
+- 数据库迁移
+- 数据验证
+- 关联关系处理
 
-- **config/**: 配置文件
+### 3. 国际化
 
-  - 环境配置（开发、测试、生产）
-  - 应用配置（数据库、JWT、i18n等）
+- 多语言支持
+- 动态语言切换
+- 翻译文件管理
+- 自动语言检测
 
-- **database/**: 数据库相关
+### 4. 异常处理
 
-  - **prisma/**: Prisma ORM 配置和模型定义
-  - 数据库连接配置
-  - 数据迁移和种子
+- 全局异常过滤
+- 自定义业务异常
+- 统一错误响应
+- 错误日志记录
 
-- **Enums/**: 枚举定义
+### 5. 响应处理
 
-  - 状态码（HTTP状态码、业务状态码）
-  - 错误码（系统错误、业务错误）
-  - 常量定义（业务常量、配置常量）
-
-- **exceptions-filters/**: 异常处理
-
-  - 全局异常过滤器
-  - 自定义异常类
-  - 异常响应格式化
-
-- **guards/**: 认证守卫
-
-  - JWT 认证守卫
-  - 角色验证守卫
-  - 权限控制守卫
-
-- **interfaces/**: 接口定义
-
-  - 响应接口（统一响应格式）
-  - 请求接口（DTO验证）
-  - 数据接口（业务模型接口）
-
-- **lang/**: 国际化
-
-  - **en/**: 英文翻译文件
-  - **zh/**: 中文翻译文件
-  - 支持动态切换语言
-
-- **models/**: 数据模型
-
-  - 基础业务模型
-  - 通用业务逻辑
-  - 数据验证规则
-  - 模型关联关系
-
-- **translations/**: 翻译模块
-
-  - 翻译服务（I18nService）
-  - 翻译管道（TranslationPipe）
-  - 翻译装饰器（@Translate）
-
-- **utils/**: 工具函数
-  - 日期处理
-  - 字符串处理
-  - 加密解密
-  - 文件处理
-  - 其他通用工具
+- 统一响应格式
+- 响应转换器
+- 分页处理
+- 数据过滤
 
 ## 开发规范
 
-1. **代码风格**
+### 代码风格
 
-   - 使用 TypeScript 严格模式
-   - 遵循 ESLint 规则
-   - 使用 Prettier 格式化
-   - 保持代码整洁和一致性
+- 使用 TypeScript 严格模式
+- 遵循 ESLint 规则
+- 使用 Prettier 格式化
+- 保持代码整洁和一致性
 
-2. **命名规范**
+### 命名规范
 
-   - 文件名：kebab-case（如：user-service.ts）
-   - 类名：PascalCase（如：UserService）
-   - 变量名：camelCase（如：userName）
-   - 常量：UPPER_CASE（如：MAX_RETRY_COUNT）
-   - 接口名：以 I 开头（如：IUserResponse）
+- 文件名：kebab-case（如：user-service.ts）
+- 类名：PascalCase（如：UserService）
+- 变量名：camelCase（如：userName）
+- 常量：UPPER_CASE（如：MAX_RETRY_COUNT）
+- 接口名：以 I 开头（如：IUserResponse）
 
-3. **模块组织**
+### API 设计
 
-   - 按功能模块划分
-   - 保持模块独立性
-   - 遵循单一职责原则
-   - 合理使用依赖注入
-
-4. **API 设计**
-   - RESTful 风格
-   - 版本控制（/api/v1/...）
-   - 统一响应格式
-   - 合理的错误处理
-   - 完整的接口文档
+- RESTful 风格
+- 版本控制（/api/v1/...）
+- 统一响应格式
+- 合理的错误处理
+- 完整的接口文档
 
 ## 测试
 
@@ -206,17 +187,42 @@ $ pnpm run test:cov
 
 ## 部署
 
-1. 构建项目
+### 1. 构建项目
 
 ```bash
 $ pnpm run build
 ```
 
-2. 启动服务
+### 2. 环境配置
+
+- 配置生产环境变量
+- 设置数据库连接
+- 配置日志系统
+- 设置安全选项
+
+### 3. 启动服务
 
 ```bash
 $ pnpm run start:prod
 ```
+
+## 数据库迁移
+
+```bash
+# 生成迁移文件
+$ ./prisma-diff.sh
+
+# 应用迁移
+$ npx prisma db execute --file src/database/prisma/migrations/migration.sql --schema src/database/prisma/schema.prisma
+```
+
+## 贡献指南
+
+1. Fork 项目
+2. 创建特性分支
+3. 提交变更
+4. 推送到分支
+5. 创建 Pull Request
 
 ## 许可证
 
@@ -231,3 +237,72 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 - Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
 - Website - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## Prisma 命令说明
+
+### 常用命令
+
+```bash
+# 查看所有可用命令
+$ npx prisma --help
+
+# 数据库相关命令
+$ npx prisma db --help
+
+# 生成 Prisma Client
+$ npx prisma generate
+
+# 数据库迁移相关命令
+$ npx prisma migrate --help
+
+# 查看数据库状态
+$ npx prisma db pull
+
+# 重置数据库
+$ npx prisma db push --force-reset
+
+# 查看数据库模型
+$ npx prisma studio
+```
+
+### 数据库迁移
+
+```bash
+# 创建新的迁移
+$ npx prisma migrate dev --name init
+
+# 应用迁移
+$ npx prisma migrate deploy
+
+# 重置数据库并应用所有迁移
+$ npx prisma migrate reset
+
+# 生成迁移文件（使用脚本）
+$ ./prisma-diff.sh
+```
+
+### 数据模型操作
+
+```bash
+# 格式化 schema 文件
+$ npx prisma format
+
+# 验证 schema 文件
+$ npx prisma validate
+
+# 生成类型定义
+$ npx prisma generate
+```
+
+### 数据库管理
+
+```bash
+# 打开 Prisma Studio（数据库管理界面）
+$ npx prisma studio
+
+# 导出数据库结构
+$ npx prisma db pull
+
+# 将 schema 同步到数据库
+$ npx prisma db push
+```
