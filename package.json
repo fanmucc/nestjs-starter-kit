@@ -20,7 +20,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "copy-i18n": "mkdir -p dist/i18n && cp -r src/i18n/* dist/i18n/",
-    "watch:i18n": "nodemon --watch src/i18n -e json,ts --exec 'pnpm run copy-i18n'"
+    "watch:i18n": "nodemon --watch src/i18n -e json,ts --exec 'pnpm run copy-i18n'",
+    "prisma-diff": "bash prisma-diff.sh",
+    "prisma-up": "bash prisma-up.sh"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.804.0",
