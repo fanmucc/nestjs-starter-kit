@@ -5,10 +5,11 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-// 引入全局模块
-import { PrismaModule } from './database/prisma/prisma.module';
-// 全局翻译模块
-import { TranslationsModule } from './translations/translations.module';
+// // 引入全局模块
+// import { PrismaModule } from './database/prisma/prisma.module';
+// // 全局翻译模块
+// import { TranslationsModule } from './translations/translations.module';
+import { ServicesModule } from './services/index.module';
 // 登录登出模块
 import { AuthModule } from './Http/Api/V1/auth/auth.module';
 // 引入后端模块
@@ -33,7 +34,8 @@ import { BaseFilter } from './modelFilters/BaseFilter';
       load: [() => dotenv.config({ path: '.env' })],
     }),
     // 引入数据库模块，全局引入，其他模块直接使用
-    PrismaModule,
+    // PrismaModule,
+    ServicesModule,
     BackendModule,
     // 处理路由模块
     RouterModule.register([
@@ -72,8 +74,7 @@ import { BaseFilter } from './modelFilters/BaseFilter';
         new HeaderResolver(['accept-language']),
       ],
     }),
-    TranslationsModule,
-    JobPositionsModule,
+    // TranslationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

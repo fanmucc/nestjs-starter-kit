@@ -53,11 +53,11 @@ export class CodeDemoController {
     // 3. 触发未知错误
     // 4. 401 未授权错误
     // throw new NotFoundException(`ID为 的资源不存在`);
-    // throw new UnauthorizedException('请先登录');
+    throw new UnauthorizedException();
     // throw new Error('数据库连接失败');
     // throw new BusinessException(
-    //   '权限不足',
-    //   ErrorCode.FORBIDDEN,
+    //   '',
+    //   414,
     //   { requiredRole: 'admin' },
     // );
     return {

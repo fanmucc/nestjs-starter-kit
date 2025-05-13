@@ -13,9 +13,10 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ResponseInterface } from './response.interface';
-import { ResponseCodeEnum, ResponseMessageEnum } from '../Enums/response-status.enum';
-import { ClassConstructor, instanceToPlain, plainToInstance } from 'class-transformer';
+import { ResponseCodeEnum } from '../Enums/response-status.enum';
+import { ClassConstructor, instanceToPlain, plainToInstance, Type } from 'class-transformer';
 import { Reflector } from '@nestjs/core';
+import { I18nService } from 'nestjs-i18n';
 
 export const RESPONSE_DTO_KEY = 'response_dto';
 
@@ -25,7 +26,8 @@ export function ResponseDto(dto: ClassConstructor<any>) {
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInterface<T>> {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector, private i18n: I18nService) { }
+
   // 递归处理嵌套对象
   private transformNestedObject(data: any, dto: ClassConstructor<any>): any {
     if (!data) return data;
@@ -41,15 +43,21 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
       });
 
       const transformed = instanceToPlain(instance);
+
       // 递归处理所有嵌套对象
-      // Object.keys(transformed).forEach(key => {
-      //   if (transformed[key] && typeof transformed[key] === 'object') {
-      //     if (key === 'parent' && data[key]) {
-      //       // 对于parent字段，使用同样的DTO递归处理
-      //       transformed[key] = this.transformNestedObject(data[key], dto);
-      //     }
-      //   }
-      // });
+      Object.keys(transformed).forEach(key => {
+        if (transformed[key] && typeof transformed[key] === 'object') {
+          // 获取属性的类型装饰器
+          const propertyType = Reflect.getMetadata('design:type', dto.prototype, key);
+          if (propertyType && propertyType !== Object) {
+            // 如果属性有明确的类型，使用该类型进行转换
+            transformed[key] = this.transformNestedObject(data[key], propertyType);
+          } else {
+            // 如果没有明确的类型，使用当前DTO类型
+            transformed[key] = this.transformNestedObject(data[key], dto);
+          }
+        }
+      });
 
       return transformed;
     }
@@ -100,10 +108,12 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ResponseInter
             transformedData = this.transformNestedObject(data, responseDto);
           }
         }
+
+        let defaultMessage = this.i18n.t(`http-statuses.${ResponseCodeEnum.OK}`);
         // 构建标准响应格式
         const result: ResponseInterface<T> = {
-          code: ResponseCodeEnum.SUCCESS,
-          message: ResponseMessageEnum.SUCCESS,
+          code: ResponseCodeEnum.OK,
+          message: defaultMessage as string,
           data: transformedData,
           meta: {
             timestamp: new Date().toISOString(),

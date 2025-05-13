@@ -1,4 +1,4 @@
-// lambda
+// lambda aws 提供的无服务器计算服务 可以进行一些下载，本身业务是进行处理 网页绘制 pdf 然后下载的服务
 export enum LAMBDA {
   LAMBDA_SIDECAR_APP_NAME = 'LAMBDA_SIDECAR_APP_NAME',
   LAMBDA_SIDECAR_ENV = 'LAMBDA_SIDECAR_ENV',
